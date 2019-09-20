@@ -1,0 +1,28 @@
+{
+  "name": "login",
+  "version": "1.0.0",
+  "description": "nodeJS + MySql",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mKolibri/backend.git"
+  },
+  "author": "Mane Antonyan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mKolibri/backend/issues"
+  },
+  "homepage": "https://github.com/mKolibri/backend#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "crypto-random-string": "^3.0.1",
+    "dotenv": "^8.1.0",
+    "express": "^4.17.1",
+    "express-validator": "^6.2.0",
+    "mysql": "^2.17.1"
+  }
+}
