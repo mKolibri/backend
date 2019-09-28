@@ -1,27 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/user.controller');
+const userController = require('../controllers/user.controller');
+const tableController = require('../controllers/table.controller');
 const { check } = require('express-validator');
 
 router.route('/registration')
     .post([check('name').matches(/^[A-Z]{1}[a-z]{1,}$/)
         .withMessage('Names first simbol must upper'),
-        check('mail').isEmail(),
+        check('mail').isEmail().withMessage('Not valid E-mail adress.'),
         check('password').matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)
-        .withMessage('Password must be contain at least one uppercase character, and lowercase character, and one symbol')],
-        controller.userRegistration
-    );
-
+        .withMessage('Password must be contain at least one uppercase character, and lowercase character, and one symbol.')],
+        userController.userRegistration);
 router.route('/login')
-    .post(controller.loginUser);
-
+    .post(userController.loginUser);
 router.route('/logout')
-    .post(controller.userLogout);
-
+    .post(userController.userLogout);
 router.route('/user')
-    .get(controller.getUserInfo);
+    .get(userController.getUserInfo);
+
 
 router.route('/tables')
-    .get(controller.getUserTables);
+    .get(tableController.getTables);
 
 module.exports = router;
