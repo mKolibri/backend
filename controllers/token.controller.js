@@ -4,19 +4,15 @@ const connection = require('../db/mysql');
 module.exports.addToken = async function(userID) {
     const key = cryptoRandomString({length: 10});
     const token = userID + key + "666";
-    try {
-        connection.query(`INSERT tokens(token, userID) VALUES (?, ?)`,
-            [ token, userID ], (error) => {
-                if (error) {
-                    return console.error(error.message);
-                }
-                console.log("Token created and inserted");
+    connection.query(`INSERT tokens(token, userID) VALUES (?, ?)`,
+        [token, userID], (error) => {
+            if (error) {
+                return console.error(error.message);
             }
-        );
-        return token;
-    } catch (err) {
-        console.error(err.message);
-    }
+            console.log("Token created and inserted");
+    });
+
+    return token;
 };
 
 module.exports.checkToken = async function(userID, token) {
@@ -34,18 +30,12 @@ module.exports.checkToken = async function(userID, token) {
                         }
                     );
 
-                    var filtered = array.filter((value) => {
+                    array.filter((value) => {
                         return (value === token); 
                     });
-
-                    if (filtered.length === 0) {
-                        return true;
-                    }
-                        return false;
             }
         });
     } catch (err) {
-        console.error(err.message);
         return false;    
     }
 };
@@ -58,7 +48,6 @@ module.exports.deleteToken = async function(userID, token) {
         });
         return true;
     } catch (err) {
-        console.error(err.message);
         return false;
     }
 };

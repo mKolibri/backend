@@ -6,6 +6,7 @@ const connection = mysql.createConnection({
     password : 'kolibri',
     database : 'info'
 });
+
 connection.connect();
 
 module.exports = connection;
