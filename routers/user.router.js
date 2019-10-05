@@ -23,5 +23,7 @@ router.route('/tables')
     .get(tableController.getTables);
 router.route('/addTable')
     .post(tableController.addTable);
+router.route('/showTable')
+    .get(tableController.addTable);
 
 module.exports = router;

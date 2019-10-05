@@ -39,12 +39,6 @@ let addTable = async function (req, res) {
     const description = req.body.description;
     const columns = req.body.columns;
 
-    console.log(userID);
-    console.log(token);
-    console.log(name);
-    console.log(description);
-    console.log(columns);
-
     if (!userID || !token) {
         res.status(401).json({
             message: "Empty data"
@@ -59,9 +53,7 @@ let addTable = async function (req, res) {
                     throw err;
                 } else if (results) {
                     var values = "( ";
-                    console.log("columns: " + columns.length);
                     for ( let i = 0; i < columns.length; ++i ) {
-                        console.log(values + " " + columns[i].type);
                             values += columns[i].column;
                             if (columns[i].type === "Number") {
                                 values += " INTEGER,";
@@ -70,23 +62,23 @@ let addTable = async function (req, res) {
                             } else if (columns[i].type === "String") {
                                 values += " VARCHAR(255),";
                             }
+
                         }
                     }
 
-                    console.log(values + "ho");
                     values = values.substring(0, values.length - 1);
-                    console.log(values + "ho");                    
                     values += ")";
                     const tableID = results.insertId;
                     const tableName = "t" + tableID;
-                    console.log("CREATE TABLE [IF NOT EXISTS] " + tableName +  values);
                     
-                    connection.query("CREATE TABLE ? " + values,
-                        [ tableName ], (err, results) => {
+                    connection.query("CREATE TABLE " + tableName + values,
+                        (err) => {
                             if (err) {
                                 throw err;
                             } else {
-                                console.log("Table created: " + results);
+                                return res.status(200).json({
+                                    name : tableName
+                                });
                             }
                     });
                 });
@@ -97,5 +89,71 @@ let addTable = async function (req, res) {
     }
 }
 
+let showTable = async function (req, res) {
+    console.log("userID: " + req.query.userID);
+    console.log("token: " + req.query.token);
+    console.log("name: " + req.query.name);
+    const userID = req.query.userID;
+    const token = req.query.token;
+    const name = req.query.name;
+    const tableID = substring(1, name.length);
+
+
+    if (!userID || !token) {
+        res.status(401).json({
+            message: "Empty data"
+        });
+    }
+    console.log("1")
+
+    const isTokenExist = Token.checkToken(userID, token);
+    if (isTokenExist) {
+        console.log("2")
+        onnection.query('SELECT * FROM tables WHERE tableID = ?',
+            [ tableID ], (err, result) => {
+                if (err) {
+                    throw err;
+                } else if (!result[0]) {
+                    return res.status(400).json({
+                        message: "Incorrect user"
+                    });
+                } else if (result[0].name) {
+                    console.log("3")
+                    const table = result[0].name;
+                    const desc = result[0].description;
+                    connection.query("SHOW COLUMNS FROM ?",
+                        [ name ], (err, results) => {
+                            if (err) {
+                                throw err;
+                            } else {
+                                console.log("4")
+                                const count = results.length;
+                                const columns = [];
+                                for (let i = 0; i < count; ++i) {
+                                    let value = {
+                                        column: results[i].Field,
+                                        type : results[i].Type
+                                    }
+                                    columns.push(value);
+                                }
+
+                                console.log("1")
+                                return res.status(200).json({
+                                    columns: columns,
+                                    tableName: table,
+                                    description: desc
+                                });
+                            }
+                    });
+                }
+        });
+    } else {
+        return res.status(400).json({
+            message: "Incorrect token"
+        });
+    }
+}
+
 module.exports.getTables = getTables;
 module.exports.addTable = addTable;
+module.exports.showTable = showTable;
