@@ -39,13 +39,17 @@ let addTable = async function (req, res) {
     const description = req.body.description;
     const columns = req.body.columns;
 
+    console.log("userID: " + userID);
+    console.log("token: " + token);
+
     if (!userID || !token) {
-        res.status(401).json({
+        return res.status(401).json({
             message: "Empty data"
         });
     }
 
     const isTokenExist = Token.checkToken(userID, token);
+    console.log("OK");
     if (isTokenExist) {
         connection.query(`INSERT INTO tables (userID, name, description, date) VALUES (?, ?, ?, DATE)`,
             [ userID, name, description ], (err, results) => {
@@ -90,26 +94,29 @@ let addTable = async function (req, res) {
 }
 
 let showTable = async function (req, res) {
+    console.log("HI");
     console.log("userID: " + req.query.userID);
     console.log("token: " + req.query.token);
-    console.log("name: " + req.query.name);
+    console.log("name: " + req.query.table);
     const userID = req.query.userID;
     const token = req.query.token;
-    const name = req.query.name;
-    const tableID = substring(1, name.length);
+    const name = req.query.table;
+    console.log(name);
+    const tableID = name.substring(1, name.length);
+    console.log(tableID );
 
 
     if (!userID || !token) {
-        res.status(401).json({
+        return res.status(401).json({
             message: "Empty data"
         });
     }
-    console.log("1")
+    console.log("1");
 
     const isTokenExist = Token.checkToken(userID, token);
     if (isTokenExist) {
-        console.log("2")
-        onnection.query('SELECT * FROM tables WHERE tableID = ?',
+        console.log("2");
+        connection.query('SELECT * FROM tables WHERE tableID = ?',
             [ tableID ], (err, result) => {
                 if (err) {
                     throw err;
@@ -118,15 +125,17 @@ let showTable = async function (req, res) {
                         message: "Incorrect user"
                     });
                 } else if (result[0].name) {
-                    console.log("3")
-                    const table = result[0].name;
+                    console.log(result[0]);
+                    const name = result[0].name;
                     const desc = result[0].description;
-                    connection.query("SHOW COLUMNS FROM ?",
-                        [ name ], (err, results) => {
+                    console.log("table: " + table);
+                    console.log("desc: " + desc);
+                    connection.query(`SHOW COLUMNS FROM ${name}`,
+                        (err, results) => {
                             if (err) {
                                 throw err;
                             } else {
-                                console.log("4")
+                                console.log("4");
                                 const count = results.length;
                                 const columns = [];
                                 for (let i = 0; i < count; ++i) {
@@ -134,13 +143,16 @@ let showTable = async function (req, res) {
                                         column: results[i].Field,
                                         type : results[i].Type
                                     }
+                                    console.log("value: " + value.column + " " + value.type);
                                     columns.push(value);
                                 }
 
-                                console.log("1")
+                                console.log("col: " + columns);
+                                console.log("table: " + name);
+                                console.log("description: " + desc);
                                 return res.status(200).json({
                                     columns: columns,
-                                    tableName: table,
+                                    table: name,
                                     description: desc
                                 });
                             }
