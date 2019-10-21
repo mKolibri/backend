@@ -1,10 +1,10 @@
 const cryptoRandomString = require('crypto-random-string');
-const connection = require('../db/mysql');
+const configs = require('../configs');
 
 module.exports.addToken = async function(userID) {
     const key = cryptoRandomString({length: 10});
-    const token = userID + key + "666";
-    connection.query(`INSERT tokens(token, userID) VALUES (?, ?)`,
+    const token = userID + key;
+    configs.connection.query(`INSERT tokens(token, userID) VALUES (?, ?)`,
         [token, userID], (error) => {
             if (error) {
                 return console.error(error.message);
@@ -17,7 +17,7 @@ module.exports.addToken = async function(userID) {
 
 module.exports.checkToken = async function(userID, token) {
     try {
-        connection.query(`SELECT * FROM tokens WHERE userID = ?`,
+        configs.connection.query(`SELECT * FROM tokens WHERE userID = ?`,
             [ userID ], (error, results) => {
                 if (error) {
                     throw error;
@@ -42,7 +42,7 @@ module.exports.checkToken = async function(userID, token) {
 
 module.exports.deleteToken = async function(userID, token) {
     try {
-        connection.query(`DELETE FROM tokens WHERE userID = ? AND token = ?`,
+        configs.connection.query(`DELETE FROM tokens WHERE userID = ? AND token = ?`,
             [ userID, token ], (error) => {
             if (error) throw error;
         });

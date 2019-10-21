@@ -1,4 +1,4 @@
-const connection = require('../db/mysql');
+const configs = require('../configs');
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const Token = require('./token.controller');
@@ -14,13 +14,13 @@ let loginUser = async function (req, res) {
     }
 
     try {
-        connection.query(`SELECT * FROM users WHERE mail = ?`,
+        configs.connection.query(`SELECT * FROM users WHERE mail = ?`,
             [ mail ], (err, results) => {
                 if (err) {
                     throw err;
                 } else if (!results[0]) {
                     return res.status(400).json({
-                        message: "Incorrect mail"
+                        message: "Incorrect mail or password"
                     });
                 } else if (results[0].password) {
                     if (bcrypt.compareSync(password, results[0].password)) {
@@ -35,11 +35,11 @@ let loginUser = async function (req, res) {
                                     message: "Database problem"
                                 });                        
                             });
-                    } else {
-                        return res.status(400).json({
-                            message: "Incorrect password"
-                        });
                     }
+                } else {
+                    return res.status(400).json({
+                        message: "Incorrect mail or password"
+                    });
                 }
             });
     } catch (err) {
@@ -64,7 +64,7 @@ let userRegistration = async function (req, res) {
 
     const mail = req.body.mail;
     try {
-        connection.query(`SELECT * FROM users where mail = ?`,
+        configs.connection.query(`SELECT * FROM users where mail = ?`,
             [ mail ], (err, results) => {
                 if (err) {
                     throw err;
@@ -76,12 +76,12 @@ let userRegistration = async function (req, res) {
 
                     if (name && mail && password) {
                         const cryptPass = bcrypt.hashSync(password, 6);
-                        connection.query(`INSERT INTO users(name, surname, age, mail, password) VALUES (?, ?, ?, ?, ?)`,
+                        configs.connection.query(`INSERT INTO users(name, surname, age, mail, password) VALUES (?, ?, ?, ?, ?)`,
                             [name, surname, age, mail, cryptPass], (err, result) => {
                                 if (err) {
                                     throw err;
                                 } else if (!result[0]) {
-                                    connection.query(`SELECT * FROM users where mail = ?`,
+                                    configs.connection.query(`SELECT * FROM users where mail = ?`,
                                         [ mail ], (err, result) => {
                                             if (err) {
                                                 throw err;
@@ -157,7 +157,7 @@ let getUserInfo = async function (req, res) {
     if (userID && token) {
         const isTokenExist = Token.checkToken(userID, token);
         if (isTokenExist) {
-            connection.query('SELECT * FROM users WHERE userID = ?',
+            configs.connection.query('SELECT * FROM users WHERE userID = ?',
             [ userID ], function (err, result) {
                 if (err) {
                     throw err;

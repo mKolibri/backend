@@ -1,4 +1,4 @@
-const connection = require('../db/mysql');
+const configs = require('../configs');
 const Token = require('./token.controller');
 
 let getTables = async function (req, res) {
@@ -13,7 +13,7 @@ let getTables = async function (req, res) {
     
     const isTokenExist = Token.checkToken(userID, token);
     if (isTokenExist) {
-        connection.query('SELECT * FROM tables WHERE userID = ?',
+        configs.connection.query('SELECT * FROM tables WHERE userID = ?',
             [ userID ], (err, result) => {
                 if (err) {
                     throw err;
@@ -51,7 +51,7 @@ let addTable = async function (req, res) {
     const isTokenExist = Token.checkToken(userID, token);
     console.log("OK");
     if (isTokenExist) {
-        connection.query(`INSERT INTO tables (userID, name, description, date) VALUES (?, ?, ?, DATE)`,
+        configs.connection.query(`INSERT INTO tables (userID, name, description, date) VALUES (?, ?, ?, DATE)`,
             [ userID, name, description ], (err, results) => {
                 if (err) {
                     throw err;
@@ -75,7 +75,7 @@ let addTable = async function (req, res) {
                     const tableID = results.insertId;
                     const tableName = "t" + tableID;
                     
-                    connection.query("CREATE TABLE " + tableName + values,
+                    configs.connection.query("CREATE TABLE " + tableName + values,
                         (err) => {
                             if (err) {
                                 throw err;
@@ -116,7 +116,7 @@ let showTable = async function (req, res) {
     const isTokenExist = Token.checkToken(userID, token);
     if (isTokenExist) {
         console.log("2");
-        connection.query('SELECT * FROM tables WHERE tableID = ?',
+        configs.connection.query('SELECT * FROM tables WHERE tableID = ?',
             [ tableID ], (err, result) => {
                 if (err) {
                     throw err;
@@ -130,7 +130,7 @@ let showTable = async function (req, res) {
                     const desc = result[0].description;
                     console.log("table: " + table);
                     console.log("desc: " + desc);
-                    connection.query(`SHOW COLUMNS FROM ${name}`,
+                    configs.connection.query(`SHOW COLUMNS FROM ${name}`,
                         (err, results) => {
                             if (err) {
                                 throw err;

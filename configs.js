@@ -8,5 +8,7 @@ const connection = mysql.createConnection({
 });
 
 connection.connect();
+export const ;
 
-module.exports = connection;
+module.exports.connection = connection;
+module.exports.port = 10000;
