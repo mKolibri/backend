@@ -4,8 +4,19 @@ const login = require('./routers/user.router');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
-const port = require('./configs');
+const config = require('./configs');
+var cookieParser = require('cookie-parser');
 const Token = require('./token.controller');
+var app = express();
+
+app.use(cookieParser());
+app.listen(8080);
+app.use(cors({
+  origin: (_origin, callback) => {
+      callback(null, true)
+  },
+  credentials: true
+}))
 
 dotenv.config();
 app.use(bodyParser.urlencoded({
@@ -19,10 +30,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(Token.checkToken, request.query.userID, req.query.token); // ?
-
+app.use(Token.checkToken, request.cookies.userID, req.cookies.token); // ?
 app.use('/', login);
-app.use(cors('*'));
-app.listen(port);
+// app.use(cors('*'));
+app.listen(config.port);
 
 module.exports = app;

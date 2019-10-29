@@ -31,12 +31,12 @@ module.exports.checkToken = async function(userID, token) {
                     );
 
                     array.filter((value) => {
-                        return (value === token); 
+                        return (value === token);
                     });
             }
         });
     } catch (err) {
-        return false;    
+        return false;
     }
 };
 
