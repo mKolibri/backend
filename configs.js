@@ -6,7 +6,19 @@ const connection = mysql.createConnection({
     password : 'kolibri',
     database : 'info'
 });
-connection.connect();
+
+var options = {
+    host: 'localhost',
+    user: 'root',
+    password: 'kolibri',
+    database: 'session',
+    schema: {
+        tableName: 'sessionStore',
+        columnNames: {
+            session_id: 'sessionID'
+        }
+    },
+};
 
 module.exports.validate = [check('name').matches(/^[A-Z]{1}[a-z]{1,}$/)
     .withMessage('Names first simbol must upper'),
@@ -15,19 +27,8 @@ module.exports.validate = [check('name').matches(/^[A-Z]{1}[a-z]{1,}$/)
     .withMessage(`Password must be contain at least one uppercase character,
         and lowercase character, and one symbol.`)];
 
-module.exports.getValues = (columns) => {
-    let values = "( ";
-    if (columns.length <= 0) {
-        values = "";
-    } else {
-        for ( let i = 0; i < columns.length; ++i ) {
-            values += columns[i].column + " " + columns[i].type + ",";
-        }
-        values = values.substring(0, values.length - 1);
-        values += ")";
-    }
-    return values;
-}
-
 module.exports.connection = connection;
+module.exports.options = options;
+module.exports.secure = 'supersecretkeykolibri';
+module.exports.level = "debug";
 module.exports.port = 10000;

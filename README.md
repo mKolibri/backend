@@ -1,21 +1,32 @@
 # backend
 nodeJS + MySql
 
+# database
+sudo apt-get update
+sudo apt-get install mysql-server
+
 # how to run app
 npm ci
 node app.js
 
-#Project schema
-
+# project schema
 backend/
 ├── app.js
+├── config
+│   └── config.json
 ├── configs.js
 ├── controllers
 │   ├── table.controller.js
-│   ├── token.controller.js
 │   └── user.controller.js
+├── migrations
+│   └── 20191029214951-create-users.js
+├── models
+│   ├── index.js
+│   └── users.js
 ├── package.json
 ├── package-lock.json
 ├── README.md
-└── routers
-    └── router.js
+├── routers
+│   └── router.js
+└── src
+    └── src.js

@@ -1,110 +1,202 @@
+const src = require('../src/src');
 const configs = require('../configs');
+const log4js = require('log4js');
+const logger = log4js.getLogger();
+logger.level = configs.level;
 
 let getTables = async function (req, res) {
-    const userID = req.cookies.userID;
-    if (!userID) {
+    if (req.session.loggedin) {
+        const userID = req.session.userID;
+        if (!userID) {
+            logger.warn(`Empty data for getTables`);
+            return res.status(400).json({
+                message: "Empty data, the server did not understand the request"
+            });
+        }
+
+        logger.debug(`get Tables for user: ${userID}`);
+        configs.connection.query('SELECT * FROM tables WHERE userID = ?',
+            [ userID ], (err, result) => {
+                if (err) {
+                    throw err;
+                } else if (!result) {
+                    logger.warn(`The server can't get Tables for user: ${userID}`);
+                    return res.status(404).json({
+                        message: "The server can't find the requested page"
+                    });
+                } else {
+                    return res.status(200).json(result);
+                }
+        });
+    } else {
+        logger.warn(`Not logged in user: ${userID}`);
         return res.status(400).json({
             message: "Empty data, the server did not understand the request"
         });
     }
-
-    configs.connection.query('SELECT * FROM tables WHERE userID = ?',
-        [ userID ], (err, result) => {
-            if (err) {
-                throw err;
-            } else if (!result) {
-                return res.status(404).json({
-                    message: "The server can't find the requested page"
-                });
-            } else {
-                return res.status(200).json(result);
-            }
-        });
 }
 
 let addTable = async function (req, res) {
-    const userID = req.cookies.userID;
-    const name = req.body.name;
-    const description = req.body.description;
-    const columns = req.body.columns;
+    if (req.session.loggedin) {
+        const userID = req.session.userID;
+        const name = req.body.name;
+        const description = req.body.description;
+        const columns = req.body.columns;
 
-    if (!userID) {
+        if (!userID) {
+            logger.warn(`userID is undefined for addTable`);
+            return res.status(400).json({
+                message: "Empty data, the server did not understand the request"
+            });
+        }
+
+        configs.connection.query(`INSERT INTO tables (userID, name, description, date) VALUES (?, ?, ?, DATE)`,
+            [ userID, name, description ], (err, results) => {
+                if (err) {
+                    logger.error(error.message);
+                    throw err;
+                } else if (results) {
+                    const values = src.getValues(columns);
+                    const tableName = "t" + results.insertId;
+                    configs.connection.query("CREATE TABLE " + tableName + values,
+                        (err) => {
+                            if (err) {
+                                logger.error(error.message);
+                                throw err;
+                            } else {
+                                logger.info(`add table with name: ${tableName}`);
+                                return res.status(200).json({
+                                    name : tableName
+                                });
+                            }
+                });
+            }
+        });
+    } else {
+        logger.warn(`Empty data for addTable`);
         return res.status(400).json({
             message: "Empty data, the server did not understand the request"
         });
     }
+}
 
-    configs.connection.query(`INSERT INTO tables (userID, name, description, date) VALUES (?, ?, ?, DATE)`,
-        [ userID, name, description ], (err, results) => {
-            if (err) {
-                throw err;
-            } else if (results) {
-                const values = configs.getValues(columns);
+let showTableSchema = async function (req, res) {
+    if (req.session.loggedin) {
+        const userID = req.session.userID;
+        const name = req.query.table;
+        const tableID = name.substring(1, name.length);
 
-                const tableName = "t" + results.insertId;
-                configs.connection.query("CREATE TABLE " + tableName + values,
-                    (err) => {
-                        if (err) {
-                            throw err;
-                        } else {
-                            return res.status(200).json({
-                                name : tableName
-                            });
-                        }
-                });
-            }
-    });
+        logger.info(`show table schema for table: ${tableID}`);
+        if (!userID) {
+            logger.warn(`Empty data for addTable`);
+            return res.status(400).json({
+                message: "Empty data, the server did not understand the request"
+            });
+        }
 
+        configs.connection.query('SELECT * FROM tables WHERE tableID = ?',
+            [ tableID ], (err, result) => {
+                if (err) {
+                    logger.error(err.message);
+                    throw err;
+                } else if (!result[0]) {
+                    logger.warn("The server can't find schema for table");
+                    return res.status(404).json({
+                        message: "The server can't find the requested page"
+                    });
+                } else if (result[0].name) {
+                    const name = result[0].name;
+                    const desc = result[0].description;
+                    configs.connection.query(`SHOW COLUMNS FROM ${name}`,
+                        (err, results) => {
+                            if (err) {
+                                logger.error(err.message);
+                                throw err;
+                            } else {
+                                const count = results.length;
+                                const columns = [];
+                                for (let i = 0; i < count; ++i) {
+                                    let value = {
+                                        column: results[i].Field,
+                                        type : results[i].Type
+                                    }
+                                    columns.push(value);
+                                }
+
+                                return res.status(200).json({
+                                    columns: columns,
+                                    table: name,
+                                    description: desc
+                                });
+                            }
+                    });
+                }
+        });
+    } else {
+        logger.warn(`Empty data for showSchemaTable`);
+        return res.status(400).json({
+            message: "Empty data, the server did not understand the request"
+        });
+    }
 }
 
 let showTable = async function (req, res) {
-    const userID = req.cookies.userID;
-    const name = req.query.table;
-    const tableID = name.substring(1, name.length);
+    if (req.session.loggedin) {
+        const userID = req.session.userID;
+        const name = src.getTableID(req);
+        const tableID = name.substring(1, name.length);
 
-    if (!userID) {
+        if (!userID) {
+            logger.warn(`Empty data for showTable`);
+            return res.status(400).json({
+                message: "Empty data, the server did not understand the request"
+            });
+        }
+
+        configs.connection.query('SELECT * FROM tables WHERE tableID = ?',
+            [ tableID ], (err, result) => {
+                if (err) {
+                    logger.error(err.message);
+                    throw err;
+                } else if (!result[0]) {
+                    logger.warn("The server can't find table");
+                    return res.status(404).json({
+                        message: "The server can't find the requested page"
+                    });
+                } else if (result[0].name) {
+                    const name = result[0].name;
+                    const desc = result[0].description;
+                    configs.connection.query(`SELECT * FROM ${name}`,
+                        (err, results) => {
+                            if (err) {
+                                logger.error(err.message);
+                                throw err;
+                            } else {
+                                const count = results.length;
+                                const values = [];
+                                for (let i = 0; i < count; ++i) {
+                                    let value = results[i];
+                                    values.push(value);
+                                }
+
+                                return res.status(200).json({
+                                    columns: values,
+                                    table: name,
+                                    description: desc
+                                });
+                            }
+                    });
+                }
+        });
+    } else {
+        logger.warn(`Empty data for showTable`);
         return res.status(400).json({
             message: "Empty data, the server did not understand the request"
         });
     }
-
-    configs.connection.query('SELECT * FROM tables WHERE tableID = ?',
-        [ tableID ], (err, result) => {
-            if (err) {
-                throw err;
-            } else if (!result[0]) {
-                return res.status(404).json({
-                    message: "The server can't find the requested page"
-                });
-            } else if (result[0].name) {
-                const name = result[0].name;
-                const desc = result[0].description;
-                configs.connection.query(`SHOW COLUMNS FROM ${name}`,
-                    (err, results) => {
-                        if (err) {
-                            throw err;
-                        } else {
-                            const count = results.length;
-                            const columns = [];
-                            for (let i = 0; i < count; ++i) {
-                                let value = {
-                                    column: results[i].Field,
-                                    type : results[i].Type
-                                }
-                                columns.push(value);
-                            }
-
-                            return res.status(200).json({
-                                columns: columns,
-                                table: name,
-                                description: desc
-                            });
-                        }
-                });
-            }
-    });
 }
 
-module.exports.getTables = getTables;
 module.exports.addTable = addTable;
+module.exports.getTables = getTables;
 module.exports.showTable = showTable;
+module.exports.showTableSchema = showTableSchema;
