@@ -7,15 +7,10 @@ const configs = require('./configs');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-const log4js = require('log4js');
-
-// Logger
-const logger = log4js.getLogger();
-logger.level = configs.level;
 
 // database
 configs.connection.connect();
-logger.info(`Connection sql database`);
+configs.logger.info(`Connected with sql database`);
 
 // Session
 const app = express();
@@ -43,5 +38,5 @@ app.use((req, res, next) => {
 app.use('/', login);
 app.use(cors({'origin' : 'localhost'}));
 app.listen(configs.port);
-logger.info(`listening to port ${configs.port}`);
+configs.logger.info(`listening to port ${configs.port}`);
 module.exports = app;

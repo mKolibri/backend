@@ -4,6 +4,7 @@ const tableController = require('../controllers/table.controller');
 const config = require('../configs');
 const router = express.Router();
 
+console.log("Router")
 router.route('/registration')
     .post(config.validate, userController.userRegistration);
 router.route('/login')

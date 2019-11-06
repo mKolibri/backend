@@ -4,10 +4,14 @@ nodeJS + MySql
 # database
 sudo apt-get update
 sudo apt-get install mysql-server
+sudo npm install nodemon -g
 
 # how to run app
 npm ci
-node app.js
+# production mode
+npm run prod
+# development mode
+npm run dev
 
 # project schema
 backend/
@@ -18,11 +22,6 @@ backend/
 ├── controllers
 │   ├── table.controller.js
 │   └── user.controller.js
-├── migrations
-│   └── 20191029214951-create-users.js
-├── models
-│   ├── index.js
-│   └── users.js
 ├── package.json
 ├── package-lock.json
 ├── README.md

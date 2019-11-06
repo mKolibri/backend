@@ -1,4 +1,5 @@
 const mysql = require('mysql');
+const log4js = require('log4js');
 const { check } = require('express-validator');
 const connection = mysql.createConnection({
     host     : 'localhost',
@@ -7,7 +8,15 @@ const connection = mysql.createConnection({
     database : 'info'
 });
 
-var options = {
+// Logger
+const logger = log4js.getLogger();
+if (process.env.NODE_ENV !== "prod") {
+    logger.level = "DEBUG";
+} else {
+    logger.level = "WARN";
+}
+
+const options = {
     host: 'localhost',
     user: 'root',
     password: 'kolibri',
@@ -30,5 +39,5 @@ module.exports.validate = [check('name').matches(/^[A-Z]{1}[a-z]{1,}$/)
 module.exports.connection = connection;
 module.exports.options = options;
 module.exports.secure = 'supersecretkeykolibri';
-module.exports.level = "debug";
 module.exports.port = 10000;
+module.exports.logger = logger;
