@@ -1,0 +1,16 @@
+{
+  "development": {
+    "username": "root",
+    "password": "kolibri",
+    "database": "info",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  },
+  "production": {
+    "username": "root",
+    "password": "kolibri",
+    "database": "info",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  }
+}
