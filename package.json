@@ -1,12 +1,12 @@
 {
-  "name": "login",
+  "name": "backend",
   "version": "0.0.1",
   "description": "nodeJS + MySql",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "run" : "nodemon app.js",
-    "prod": "NODE_ENV=prod node app.js",
-    "dev": "NODE_ENV=dev nodemon app.js"
+    "run": "nodemon app.js",
+    "prod": "npx sequelize-cli db:create && npx sequelize-cli db:migrate && NODE_ENV=prod node app.js",
+    "dev": "npx sequelize-cli db:create && npx sequelize-cli db:migrate && NODE_ENV=dev nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -30,7 +30,9 @@
     "express-validator": "^6.2.0",
     "log4js": "^5.3.0",
     "mysql": "^2.17.1",
-    "mysql2": "^2.0.0"
+    "mysql2": "^2.0.0",
+    "sequelize": "^5.21.2",
+    "sequelize-cli": "^5.5.1"
   },
   "devDependencies": {
     "nodemon": "^1.19.4"

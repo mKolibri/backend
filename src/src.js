@@ -1,6 +1,6 @@
 const url = require('url');
 
-module.exports.getValues = function(columns) {
+const getValues = function(columns) {
     let values = "( ";
     if (columns.length <= 0) {
         values = "";
@@ -14,8 +14,13 @@ module.exports.getValues = function(columns) {
     return values;
 }
 
-module.exports.getTableID = function(req) {
+const getTableID = function(req) {
     let path = url.parse(req.url).pathname;
     let array = path.split("/");
     return array[1];
+}
+
+module.exports = {
+    getValues: getValues,
+    getTableID: getTableID
 }

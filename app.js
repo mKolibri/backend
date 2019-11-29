@@ -1,42 +1,51 @@
-const express = require('express');
 const bodyParser = require('body-parser');
-const login = require('./routers/router');
-const cors = require('cors');
-const dotenv = require('dotenv');;
-const configs = require('./configs');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
+const express = require('express');
+const cors = require('cors');
+const database = require('./database/db');
+const configs = require('./configs');
+const login = require('./routers/router');
 
-// database
-configs.connection.connect();
-configs.logger.info(`Connected with sql database`);
-
-// Session
+// SessionStore
 const app = express();
-var sessionStore = new MySQLStore(configs.options);
-app.use(bodyParser.urlencoded({
-  extended: false
-}));
-app.set('trust proxy', 1);
-app.use(session({
-  secret: configs.secure,
-  resave: true,
-  store: sessionStore,
-  saveUninitialized: true,
-}));
-
-// request & response
-app.use(cookieParser());
-dotenv.config();
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', "*");
-  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+app.use(cookieParser());
+
+// Headers
+app.use(function(req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', configs.allowedOrigins);
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
+
+// Session and cookies
+app.use(session({
+  secret: configs.secure,
+  key: configs.key,
+  resave: true,
+  store: database.sessionStore,
+  saveUninitialized: true,
+  cookie: {
+    expires: 6000000,
+  }
+}));
+app.use((req, res, next) => {
+  if (req.cookies && !req.session) {
+    res.clearCookie(req.sessionID);
+  }
+  next();
+});
+
+// cors
+app.use(cors({
+  origin: configs.origin
+}));
+
 app.use('/', login);
-app.use(cors({'origin' : 'localhost'}));
 app.listen(configs.port);
 configs.logger.info(`listening to port ${configs.port}`);
+
 module.exports = app;

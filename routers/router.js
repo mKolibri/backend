@@ -4,7 +4,7 @@ const tableController = require('../controllers/table.controller');
 const config = require('../configs');
 const router = express.Router();
 
-console.log("Router")
+// User-router
 router.route('/registration')
     .post(config.validate, userController.userRegistration);
 router.route('/login')
@@ -14,12 +14,14 @@ router.route('/logout')
 router.route('/user')
     .get(userController.getUserInfo);
 
+// Table-router
 router.route('/tables')
     .get(tableController.getTables);
 router.route('/addTable')
     .post(tableController.addTable);
 router.route('/showTable')
     .get(tableController.showTableSchema);
-router.route('tables/*')
+router.route('table/*')
     .get(tableController.showTable);
+
 module.exports = router;
