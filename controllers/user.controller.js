@@ -55,7 +55,6 @@ const userRegistration = function(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         configs.logger.warn(`Received an invalid response from the upstream server registration: ${req.body.mail}`);
-        console.log(errors.array())
         return res.status(502).json(errors.array());
     }
 

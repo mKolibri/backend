@@ -17,14 +17,17 @@
     backend/
     ├── app.js- For the application main entry point.
     ├── config
-│       └── config.json
+    │   └── config.json
     ├── configs.js- Contains application configuration settings
     ├── controllers- dummy(wireframe) callback functions that will call from routers.
     │   ├── table.controller.js // special for table-router
     │   └── user.controller.js // special for user-router
     ├── database
     │   └── db.js- // Database connection and sessionStore connection
-    ├── migrations- functions to create tables
+    ├── middlewares- Use callback functions
+    │   ├── header.mid.js // for headers in response
+    │   └── session.mid.js // to check session
+    ├── migrations- Functions to create tables
     │   ├── 20191129060731-create-tables.js // for tables
     │   └── 20191129061957-create-users.js // for users
     ├── models- database or table models
