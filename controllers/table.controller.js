@@ -35,6 +35,55 @@ const getTables = function(req, res) {
     }
 };
 
+const deleteTableColumn = function(req, res) {
+    let info = {
+        userID: req.session.userID,
+        columnName: req.body.colName,
+        tableID: req.body.name,
+        tableName: 't' + req.body.name
+    };
+
+    db.connection.query(`SELECT * FROM tables WHERE tableID = ? and userID = ?`,
+    [ info.tableID, info.userID ], function(err, result) {
+        if (err) {
+            configs.logger.error(err.message);
+            throw err;
+        } else if (!result[0]) {
+            configs.logger.warn("The server can't find table to delete a column");
+            return res.status(404).json({
+                message: "The server can't find the requested page"
+            });
+        } else {
+            db.connection.query(`SHOW COLUMNS FROM ${info.tableName}`,
+                function(err, results) {
+                    if (err) {
+                        configs.logger.error(err.message);
+                            throw err;
+                        } else {
+                            const count = results.length;
+                            if (results.length > 1) {
+                                db.connection.query(`alter table ${info.tableName} drop column ${info.columnName}`,
+                                    function(err) {
+                                        if (err) {
+                                        configs.logger.error(err.message);
+                                        throw err;
+                                    } else {
+                                        return res.status(200).json({
+                                            message: "Succesfully deleted column"
+                                        });
+                                    }
+                                });
+                            } else {
+                                return res.status(402).json({
+                                    message: "You can't delete last column"
+                                });
+                            }
+                        }
+            });
+        }
+    });
+}
+
 const addTable = function(req, res) {
     let info = {
         userID: req.session.userID,
@@ -132,7 +181,6 @@ const addValues = function(req, res) {
             message: "Empty data, the server did not understand the request"
         });
     }
-
     const cond = src.getConditionsMultAdd(info);
     db.connection.query(`SELECT * FROM ${info.tableName} WHERE ${cond}`,
         function(err, result) {
@@ -147,7 +195,7 @@ const addValues = function(req, res) {
                         message: "Empty data, the server did not understand the request"
                     });
                 }
-                db.connection.query(`INSERT INTO ${info.tableName} ${condition}`,
+                db.connection.query(`INSERT IGNORE INTO ${info.tableName} ${condition}`,
                     function(err, results) {
                         if (err) {
                             configs.logger.error(err.message);
@@ -257,7 +305,7 @@ const updateTableInfo = function(req, res) {
         });
     }
 
-    db.connection.query('UPDATE tables SET name = ?, description = ? WHERE tableID = ? and userID = ? LIMIT 1',
+    db.connection.query('update tables SET name = ?, description = ? WHERE tableID = ? and userID = ? LIMIT 1',
         [ info.name, info.description, info.tableID, info.userID ],
         function(err) {
             if (err) {
@@ -269,6 +317,52 @@ const updateTableInfo = function(req, res) {
                     });
                 }
         });
+}
+
+const updateTableValues = function(req, res) {
+    const info = {
+        userID: req.session.userID,
+        oldData: req.body.oldData,
+        newData: req.body.newData,
+        tableID: req.body.tableID,
+        name: 't' + req.body.tableID
+    };
+
+    if (!info.userID || !info.tableID) {
+        configs.logger.warn(`Empty data for update table information`);
+        return res.status(400).json({
+            message: "Empty data, the server did not understand the request"
+        });
+    }
+
+    db.connection.query(`SELECT * FROM tables WHERE tableID = ? and userID = ?`,
+    [ info.tableID, info.userID ], function(err, result) {
+        if (err) {
+            configs.logger.error(err.message);
+            throw err;
+        } else if (!result[0]) {
+            configs.logger.warn("The server can't find table");
+            return res.status(404).json({
+                message: "The server can't find the requested page"
+            });
+        } else {
+            const condition = src.getUpdateData(info);
+            if (condition) {
+                db.connection.query(`update ${info.name} SET ${condition} LIMIT 1`,
+                    [ info.name, info.description, info.tableID, info.userID ],
+                    function(err) {
+                        if (err) {
+                            configs.logger.error(err.message);
+                            throw err;
+                        } else {
+                            return res.status(200).json({
+                                message: "Succesfully updated"
+                            });
+                        }
+                });
+            }
+        }
+    });
 }
 
 const addColumnToTable = function(req, res) {
@@ -312,6 +406,97 @@ const addColumnToTable = function(req, res) {
         }
     });
 }
+
+const sortTable = function(req, res) {
+    const name = src.getTableID(req);
+    let data = {
+        userID: req.session.userID,
+        tableID: name,
+        tableName: "t" + name,
+        sortBy: req.query.sortBy,
+        sortASC: req.query.sortASC,
+        sortDESC: req.query.sortDESC
+    }
+
+    if (!data.userID || !data.tableID) {
+        configs.logger.warn(`Empty data for sortTable`);
+        return res.status(400).json({
+            message: "Empty data, the server did not understand the request"
+        });
+    }
+
+    let info = {};
+    info.values = [];
+    db.connection.query('SELECT * FROM tables WHERE tableID = ? and userID = ?',
+        [ data.tableID, data.userID ], function(err, result) {
+            if (err) {
+                configs.logger.error(err.message);
+                throw err;
+            } else if (!result[0]) {
+                configs.logger.warn("The server can't find table");
+                return res.status(404).json({
+                    message: "The server can't find the requested page"
+                });
+            } else if (result[0].name) {
+                info.tableName = result[0].name;
+                info.desc = result[0].description;
+                if (String(data.sortASC) === 'true') {
+                    data.sort = data.sortBy + " ASC";
+                } else {
+                    data.sort = data.sortBy + " DESC";
+                }
+                if (data.sortBy) {
+                    db.connection.query(`SELECT * FROM ${data.tableName} ORDER BY ${data.sort}`,
+                        function(err, results) {
+                            if (err) {
+                                configs.logger.error(err.message);
+                                throw err;
+                            } else {
+                                const count = results.length;
+                                for (let i = 0; i < count; ++i) {
+                                    let value = results[i];
+                                    info.values.push(value);
+                                }
+                                db.connection.query(`SHOW COLUMNS FROM ${data.tableName}`,
+                                    function(err, results) {
+                                        if (err) {
+                                            configs.logger.error(err.message);
+                                            throw err;
+                                        } else {
+                                            const count = results.length;
+                                            data.columns = [];
+                                            for (let i = 0; i < count; ++i) {
+                                                let type = src.getType(results[i].Type);
+                                                const value = {
+                                                    column: results[i].Field,
+                                                    type: type
+                                                }
+                                                data.columns.push(value);
+                                            }
+                                            return res.status(200).json({
+                                                schema: data.columns,
+                                                columns: info.values,
+                                                table: info.tableName,
+                                                description: info.desc
+                                            });
+                                        }
+                                });
+                            }
+                    });
+                } else {
+                    configs.logger.warn(`Empty data for sortTable`);
+                    return res.status(400).json({
+                        message: "Empty data, the server did not understand the request"
+                    });
+                }
+            } else {
+                configs.logger.warn("The server can't find table");
+                return res.status(404).json({
+                    message: "The server can't find the requested page"
+                });
+            }
+    });
+};
 
 const showTable = function(req, res) {
     const name = src.getTableID(req);
@@ -380,7 +565,7 @@ const showTable = function(req, res) {
                                     }
                             });
                         }
-                    });
+                });
             } else {
                 configs.logger.warn("The server can't find table");
                 return res.status(404).json({
@@ -390,6 +575,7 @@ const showTable = function(req, res) {
     });
 };
 
+
 module.exports = {
     addTable: addTable,
     getTables: getTables,
@@ -398,5 +584,8 @@ module.exports = {
     deleteValue: deleteValue,
     addValues: addValues,
     updateTableInfo: updateTableInfo,
-    addColumnToTable: addColumnToTable
+    addColumnToTable: addColumnToTable,
+    deleteTableColumn: deleteTableColumn,
+    updateTableValues: updateTableValues,
+    sortTable: sortTable
 };
