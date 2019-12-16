@@ -24,6 +24,8 @@ router.route('/table/*')
     .get(sessionMiddle.isLoggedIn, tableController.showTable);
 router.route('/deleteTable')
     .post(sessionMiddle.isLoggedIn, tableController.deleteTable);
+router.route('/deleteColumn')
+    .post(sessionMiddle.isLoggedIn, tableController.deleteTableColumn);
 router.route('/deleteValue')
     .post(sessionMiddle.isLoggedIn, tableController.deleteValue);
 router.route('/addValues')
@@ -32,5 +34,9 @@ router.route('/updateTableInfo')
     .post(sessionMiddle.isLoggedIn, tableController.updateTableInfo);
 router.route('/addColumn')
     .post(sessionMiddle.isLoggedIn, tableController.addColumnToTable);
+router.route('/updateData')
+    .post(sessionMiddle.isLoggedIn, tableController.updateTableValues);
+router.route('/sortTable/*')
+    .get(sessionMiddle.isLoggedIn, tableController.sortTable);
 
 module.exports = router;

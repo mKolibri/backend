@@ -65,11 +65,13 @@ const getConditions = function(data) {
 
 const getConditionsMultAdd = function(data) {
     let condition = "";
-    const values = data.values[0];
-    if (values) {
-        for (let [key, value] of Object.entries(values)) {
-            if (key !== "number" && value !== null) {
-                condition += key + "= '" + value + "' and ";
+    const values = data.values;
+    if (values && values.length) {
+        for (let i = 0; i < values.length; ++i) {
+            for (let [key, value] of Object.entries(values[i])) {
+                if (key !== "number" && value !== null) {
+                    condition += key + "= '" + value + "' and ";
+                }
             }
         }
         condition = condition.slice(0, -5);
@@ -78,11 +80,35 @@ const getConditionsMultAdd = function(data) {
     return false;
 }
 
+const getUpdateData = function(info) {
+    const newData = info.newData;
+    const oldData = info.oldData;
+    if (newData && oldData) {
+        condition = '';
+        for (let [key, value] of Object.entries(newData)) {
+            if (key !== "number") {
+                condition += key + " = '" + value + "', ";
+            }
+        }
+        condition = condition.slice(0, -2) + " where ";
+        for (let [key, value] of Object.entries(oldData)) {
+            if (key !== "number" && value !== null) {
+                condition += key + " = '" + value + "' and ";
+            }
+        }
+        condition = condition.slice(0, -5);
+        return condition;
+    } else {
+        return false;
+    }
+}
+
 module.exports = {
     getValues: getValues,
     getTableID: getTableID,
     getType: getType,
     getConditions: getConditions,
     getAddValues: getAddValues,
-    getConditionsMultAdd
+    getConditionsMultAdd: getConditionsMultAdd,
+    getUpdateData: getUpdateData
 }

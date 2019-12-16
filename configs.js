@@ -32,6 +32,7 @@ const options = {
     }
 };
 
+// validation
 const validate = [check('name').matches(/^[A-Z]{1}[a-z]{1,}$/)
     .withMessage('Names first simbol must upper'),
     check('mail').isEmail().withMessage('Not valid E-mail adress.'),
