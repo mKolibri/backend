@@ -1,4 +1,4 @@
-const src = require('../src/src');
+const src = require('../src/table.src');
 const configs = require('../configs');
 const db = require('../database/db');
 const { validationResult } = require('express-validator');
@@ -60,20 +60,22 @@ const deleteTableColumn = function(req, res) {
                         configs.logger.error(err.message);
                             throw err;
                         } else {
-                            const count = results.length;
-                            if (results.length > 1) {
+                            const count = 1;
+                            if (Number(results.length) > count) {
                                 db.connection.query(`alter table ${info.tableName} drop column ${info.columnName}`,
                                     function(err) {
                                         if (err) {
-                                        configs.logger.error(err.message);
-                                        throw err;
-                                    } else {
-                                        return res.status(200).json({
-                                            message: "Succesfully deleted column"
-                                        });
-                                    }
+                                            configs.logger.error(err.message);
+                                            throw err;
+                                        } else {
+                                            configs.logger.info(`Succesfully deleted column`);
+                                            return res.status(200).json({
+                                                message: "Succesfully deleted column"
+                                            });
+                                        }
                                 });
                             } else {
+                                configs.error.warn(`Can't delete last column`);
                                 return res.status(402).json({
                                     message: "You can't delete last column"
                                 });
@@ -225,7 +227,7 @@ const deleteValue = function(req, res) {
     }
 
     if (!data.userID) {
-        configs.logger.warn(`Empty data for showTable`);
+        configs.logger.warn(`Empty data for deleteValue`);
         return res.status(400).json({
             message: "Empty data, the server did not understand the request"
         });
@@ -540,17 +542,17 @@ const showTable = function(req, res) {
                                 info.values.push(value);
                             }
                             db.connection.query(`SHOW COLUMNS FROM ${data.tableName}`,
-                                function(err, results) {
+                                function(err, resu) {
                                     if (err) {
                                         configs.logger.error(err.message);
                                         throw err;
                                     } else {
-                                        const count = results.length;
+                                        const count = resu.length;
                                         data.columns = [];
                                         for (let i = 0; i < count; ++i) {
-                                            let type = src.getType(results[i].Type);
+                                            let type = src.getType(resu[i].Type);
                                             const value = {
-                                                column: results[i].Field,
+                                                column: resu[i].Field,
                                                 type: type
                                             }
                                             data.columns.push(value);
@@ -560,7 +562,8 @@ const showTable = function(req, res) {
                                             schema: data.columns,
                                             columns: info.values,
                                             table: info.tableName,
-                                            description: info.desc
+                                            description: info.desc,
+                                            file: results
                                         });
                                     }
                             });
@@ -574,7 +577,6 @@ const showTable = function(req, res) {
             }
     });
 };
-
 
 module.exports = {
     addTable: addTable,

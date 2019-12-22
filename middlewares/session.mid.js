@@ -4,7 +4,7 @@ const isLoggedIn = function(req, res, next) {
     if (req.session.loggedin) {
         next();
     } else {
-        configs.logger.error(`Empty data to get information for user`);
+        configs.logger.error(`session error`);
         return res.status(400).json({
             message: "Empty data, the server did not understand the request"
         });

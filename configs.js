@@ -32,14 +32,13 @@ const options = {
     }
 };
 
-// validation
+// Validation
 const validate = [check('name').matches(/^[A-Z]{1}[a-z]{1,}$/)
     .withMessage('Names first simbol must upper'),
     check('mail').isEmail().withMessage('Not valid E-mail adress.'),
     check('password').matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)
     .withMessage(`Password must be contain at least one uppercase character,
         and lowercase character, and one symbol.`)];
-
 const validateTable = [check('name').matches(/[a-z]{1,}$/)
 .withMessage('Name must have only letters')];
 

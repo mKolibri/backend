@@ -1,8 +1,8 @@
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const express = require('express');
-const cors = require('cors');
 const database = require('./database/db');
 const configs = require('./configs');
 const headers = require('./middlewares/header.mid');
@@ -10,8 +10,8 @@ const router = require('./routers/router');
 
 // SessionStore
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Headers
