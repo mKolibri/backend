@@ -75,7 +75,7 @@ const deleteTableColumn = function(req, res) {
                                         }
                                 });
                             } else {
-                                configs.error.warn(`Can't delete last column`);
+                                configs.logger.warn(`Can't delete last column`);
                                 return res.status(402).json({
                                     message: "You can't delete last column"
                                 });
