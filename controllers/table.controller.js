@@ -15,7 +15,7 @@ const getTables = function(req, res) {
 
         configs.logger.debug(`get Tables for user: ${userID}`);
         db.connection.query('SELECT * FROM tables WHERE userID = ?',
-            [ userID ], function(err, result){
+            [ userID ], function(err, result) {
                 if (err) {
                     throw err;
                 } else if (!result) {
@@ -211,7 +211,7 @@ const addValues = function(req, res) {
             } else {
                 configs.logger.warn("The request could not be completed because of a conflict");
                 return res.status(409).json({
-                    message: "You cant add dublicate values in table"
+                    message: "You can\'t add dublicate values in table"
                 });
             }
     });
@@ -362,6 +362,10 @@ const updateTableValues = function(req, res) {
                             });
                         }
                 });
+            } else {
+                return res.status(400).json({
+                    message: "Can not be updated"
+                });
             }
         }
     });
@@ -506,7 +510,7 @@ const showTable = function(req, res) {
         userID: req.session.userID,
         tableID: name,
         tableName: "t" + name
-    }
+    };
 
     if (!data.userID) {
         configs.logger.warn(`Empty data for showTable`);
@@ -557,7 +561,6 @@ const showTable = function(req, res) {
                                             }
                                             data.columns.push(value);
                                         }
-
                                         return res.status(200).json({
                                             schema: data.columns,
                                             columns: info.values,

@@ -27,7 +27,11 @@ const getAddValues = function(data) {
         for (let i = 0; i < data.length; ++i) {
             for (let [key, value] of Object.entries(data[i])) {
                 fields += key + ", ";
-                values += "'" + value + "', ";
+                if (String(value) === '') {
+                    values += "NULL, ";
+                } else if (value) {
+                    values += "'" + value + "', ";
+                }
             }
         }
         fields = fields.slice(0, -2) + ")";
@@ -53,8 +57,10 @@ const getConditions = function(data) {
     const values = data.values;
     if (values) {
         for (let [key, value] of Object.entries(values)) {
-            if (key !== "number" && value !== null) {
+            if (key !== "number" && value) {
                 condition += key + "= '" + value + "' and ";
+            } else if (key !== "number" && !value) {
+                condition += key + " is NULL and ";
             }
         }
         condition = condition.slice(0, -5);
@@ -69,7 +75,9 @@ const getConditionsMultAdd = function(data) {
     if (values && values.length) {
         for (let i = 0; i < values.length; ++i) {
             for (let [key, value] of Object.entries(values[i])) {
-                if (key !== "number" && value !== null) {
+                if (key !== "number" && (!value || String(value) === '')) {
+                    condition += key + "= NULL and ";
+                } else if (key !== "number" && value) {
                     condition += key + "= '" + value + "' and ";
                 }
             }
@@ -86,14 +94,20 @@ const getUpdateData = function(info) {
     if (newData && oldData) {
         condition = '';
         for (let [key, value] of Object.entries(newData)) {
-            if (key !== "number") {
+            if (value) {
+            }
+            if (key !== "number" && value) {
                 condition += key + " = '" + value + "', ";
+            } else if (key !== "number" && !value) {
+                condition += key + " = NULL, ";
             }
         }
         condition = condition.slice(0, -2) + " where ";
         for (let [key, value] of Object.entries(oldData)) {
-            if (key !== "number" && value !== null) {
+            if (key !== "number" && value) {
                 condition += key + " = '" + value + "' and ";
+            } else if (key !== "number" && (!value)) {
+                condition += key + " is NULL and ";
             }
         }
         condition = condition.slice(0, -5);
@@ -103,9 +117,26 @@ const getUpdateData = function(info) {
     }
 }
 
+const getEmptyDataCond = function(columns) {
+    if (columns && columns.length) {
+        let condition = "";
+        for (let i = 0; i < columns.length; ++i) {
+            for (let [key, value] of Object.entries(columns[i])) {
+                if (key === "column") {
+                    condition += value + " is NULL and ";
+                }
+            }
+        }
+        condition = condition.slice(0, -5);
+        return condition;
+    }
+    return false;
+}
+
 module.exports = {
     getValues: getValues,
     getTableID: getTableID,
+    getEmptyDataCond: getEmptyDataCond,
     getType: getType,
     getConditions: getConditions,
     getAddValues: getAddValues,
