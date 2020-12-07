@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true,
   });
   tables.associate = function(models) {
+    Project.hasMany(User, {as: 'Workers'})
   };
   return tables;
 };

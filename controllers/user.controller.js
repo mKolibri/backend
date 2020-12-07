@@ -22,7 +22,7 @@ const loginUser = function(req, res) {
                 configs.logger.error(err.message);
                 throw err;
             } else if (!results[0]) {
-                configs.logger.warn(`Incorrect mail or password: ${user.mail}`);
+                configs.logger.warn(`Incorrect mail or password for login-user: ${user.mail}`);
                 return res.status(401).json({
                     message: "Incorrect mail or password"
                 });
@@ -35,7 +35,7 @@ const loginUser = function(req, res) {
                         message: "Succesfully logged in"
                     });
                 } else {
-                    configs.logger.warn(`Incorrect mail or password: ${user.mail}`);
+                    configs.logger.warn(`Incorrect mail or password for login-user: ${user.mail}`);
                     return res.status(401).json({
                         message: "Incorrect mail or password"
                     });
@@ -55,7 +55,6 @@ const userRegistration = function(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         configs.logger.warn(`Received an invalid response from the upstream server registration: ${req.body.mail}`);
-        console.log(errors.array())
         return res.status(502).json(errors.array());
     }
 

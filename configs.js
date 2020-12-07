@@ -15,9 +15,6 @@ const origin = function(origin, callback) {
     if (!origin) {
         return callback(null, true);
     }
-    if (allowedOrigins.indexOf(origin) === -1) {
-        return callback(new Error(message), false);
-    }
     return callback(null, true);
 }
 
@@ -35,12 +32,15 @@ const options = {
     }
 };
 
+// Validation
 const validate = [check('name').matches(/^[A-Z]{1}[a-z]{1,}$/)
     .withMessage('Names first simbol must upper'),
     check('mail').isEmail().withMessage('Not valid E-mail adress.'),
     check('password').matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)
     .withMessage(`Password must be contain at least one uppercase character,
         and lowercase character, and one symbol.`)];
+const validateTable = [check('name').matches(/[a-z]{1,}$/)
+.withMessage('Name must have only letters')];
 
 // Database options
 const mysqlProps = {
@@ -53,6 +53,7 @@ const mysqlProps = {
 module.exports = {
     secure: 'supersecretkeykolibri',
     allowedOrigins: allowedOrigins,
+    validateTable: validateTable,
     mysql: require('mysql'),
     mysqlProps: mysqlProps,
     validate: validate,
